@@ -15,6 +15,7 @@ module governance::governance {
     const ENOTVALIDPROPOSAL: u64 = 11;
     const EINVALIDACCESS: u64 = 12;
     const ENOTENOUGHVOTE: u64 = 13;
+    const EALREADYDAOMEMBER: u64 = 14;
     public struct Proposal has key, store {
         id: UID,
         name: String,
@@ -25,7 +26,7 @@ module governance::governance {
         last_voting_time: u64
     }
 
-    public struct ProposalList has key, store {
+    public struct ProposalList has key {
         id: UID,
         list: Table<address, Proposal>
     }
@@ -33,6 +34,21 @@ module governance::governance {
     public struct Users has key, store {
         id: UID,
         list: Table<address, u64>
+    }
+
+    public struct UserRequestList has key {
+        id: UID,
+        list: Table<address, HandleUser>
+    }
+
+    public struct HandleUser has key, store {
+        id: UID,
+        user_key: address,
+        add: bool,
+        weight: u64,
+        min_threshold: u64,
+        last_voting_time: u64
+
     }
 
 
@@ -67,12 +83,28 @@ module governance::governance {
         proposal.accepted = true;
     }
 
-    public entry fun add_user_dao() {
-
-    }
-
-    public entry fun remove_user_dao() {
-        
+    public entry fun process_user_request(
+        user_key: address, 
+        add: bool, users: &Users, 
+        min_threshold: u64, 
+        user_request_list: &mut UserRequestList,
+        ctx: &mut TxContext
+        ) {
+        assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
+        if(add) {
+           assert!(table::contains(&users.list, user_key) == false, EALREADYDAOMEMBER);
+        } else {
+            assert!(table::contains(&users.list, user_key), ENOTDAOMEMBER);
+        };
+        let new_request = HandleUser {
+            id: object::new(ctx),
+            user_key,
+            add,
+            weight: 0,
+            min_threshold,
+            last_voting_time: 0
+        };
+        table::add(&mut user_request_list.list, object::uid_to_address(&new_request.id), new_request);
     }
 
 
