@@ -1,13 +1,13 @@
 
 module governance::governance {
     use blob_store::blob::Blob;
-    use sui::clock::{Clock};
-    use std::string::{String, utf8};
+    use sui::clock::{Self, Clock};
+    use std::string::{String};
     use sui::table::{Self, Table};
 
 
     const ENOTDAOMEMBER: u64 = 10;
-
+    const ENOTVALIDPROPOSAL: u64 = 11;
     public struct Proposal has key, store {
         id: UID,
         name: String,
@@ -20,7 +20,7 @@ module governance::governance {
 
     public struct ProposalList has key, store {
         id: UID,
-        list: Table<ID, Proposal>
+        list: Table<address, Proposal>
     }
 
     public struct Users has key, store {
@@ -30,8 +30,7 @@ module governance::governance {
 
 
     public entry fun create_proposal(name: String, blob: Blob, proposal_list: &mut ProposalList, min_threshold: u64, users: &Users, ctx: &mut TxContext) {
-        let sender = tx_context::sender(ctx);
-        assert!(table::contains(&users.list, sender), ENOTDAOMEMBER);
+        assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         let new_proposal = Proposal {
             id: object::new(ctx),
             name,
@@ -41,11 +40,16 @@ module governance::governance {
             weight: 0,
             last_voting_time: 0
         };
-        table::add(&mut proposal_list.list, *object::uid_as_inner(&new_proposal.id), new_proposal);
+        table::add(&mut proposal_list.list, object::uid_to_address(&new_proposal.id), new_proposal);
     }
 
-    public entry fun vote() {
-
+    public entry fun vote(proposal_list: &mut ProposalList, proposal: address, users: &Users, clock: &Clock, ctx: &mut TxContext) {
+        assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
+        assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL);
+        let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
+        let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
+        proposal.weight = proposal.weight + *vote_weight;
+        proposal.last_voting_time = clock::timestamp_ms(clock);
     }
 
     public entry fun approve_proposal() {
