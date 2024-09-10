@@ -5,9 +5,16 @@ module governance::governance {
     use std::string::{String};
     use sui::table::{Self, Table};
 
+    const OGMEMBERS: vector<address> = vector[
+        @0x8f6ff638438081e30f3c823e83778118947e617f9d8ab08eca8613d724d77335,
+        @0xd1deff6ee20b10987bfe8d50f70f893e0465f0d00bcb638c19ad979d83f1c9c0,
+        @0x5fbe2d6fb9863859ab0fa867926557e6d0859e36cdad448c2f8ef69bf2c7ef6d
+    ];
 
     const ENOTDAOMEMBER: u64 = 10;
     const ENOTVALIDPROPOSAL: u64 = 11;
+    const EINVALIDACCESS: u64 = 12;
+    const ENOTENOUGHVOTE: u64 = 13;
     public struct Proposal has key, store {
         id: UID,
         name: String,
@@ -52,8 +59,12 @@ module governance::governance {
         proposal.last_voting_time = clock::timestamp_ms(clock);
     }
 
-    public entry fun approve_proposal() {
-
+    public entry fun approve_proposal(proposal_list: &mut ProposalList, proposal: address, ctx: &mut TxContext) {
+        let og_members = OGMEMBERS;
+        assert!(vector::contains(&og_members, &tx_context::sender(ctx)), EINVALIDACCESS);
+        let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
+        assert!(proposal.weight >= proposal.min_threshold, ENOTENOUGHVOTE);
+        proposal.accepted = true;
     }
 
     public entry fun add_user_dao() {
