@@ -52,6 +52,38 @@ module governance::governance {
     }
 
 
+    fun init(ctx: &mut TxContext) {
+
+        let proposal_list = ProposalList {
+            id: object::new(ctx),
+            list: table::new(ctx),
+        };
+
+        let user_request_list = UserRequestList {
+            id: object::new(ctx),
+            list: table::new(ctx),
+        };
+
+        let mut users = Users {
+            id: object::new(ctx),
+            list: table::new(ctx),
+        };
+
+        let og_members = OGMEMBERS;
+
+        let mut i: u64 = 0;
+        while(i < vector::length(&og_members)) {
+            let element = vector::borrow(&og_members, i);
+            table::add(&mut users.list, *element, 10);
+            i = i + 1;
+        };
+
+        transfer::share_object(proposal_list);
+        transfer::share_object(user_request_list);
+        transfer::share_object(users);
+    }
+
+
     public entry fun create_proposal(name: String, blob: Blob, proposal_list: &mut ProposalList, min_threshold: u64, users: &Users, ctx: &mut TxContext) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         let new_proposal = Proposal {
