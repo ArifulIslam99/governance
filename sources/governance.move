@@ -45,10 +45,10 @@ module governance::governance {
         id: UID,
         user_key: address,
         add: bool,
-        weight: u64,
+        vote_weight: u64,
+        proposed_user_weght: u64,
         min_threshold: u64,
         last_voting_time: u64
-
     }
 
 
@@ -66,7 +66,7 @@ module governance::governance {
         table::add(&mut proposal_list.list, object::uid_to_address(&new_proposal.id), new_proposal);
     }
 
-    public entry fun vote(proposal_list: &mut ProposalList, proposal: address, users: &Users, clock: &Clock, ctx: &mut TxContext) {
+    public entry fun vote_proposal(proposal_list: &mut ProposalList, proposal: address, users: &Users, clock: &Clock, ctx: &mut TxContext) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL);
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
@@ -88,6 +88,7 @@ module governance::governance {
         add: bool, users: &Users, 
         min_threshold: u64, 
         user_request_list: &mut UserRequestList,
+        proposed_user_weght: u64,
         ctx: &mut TxContext
         ) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
@@ -100,13 +101,45 @@ module governance::governance {
             id: object::new(ctx),
             user_key,
             add,
-            weight: 0,
+            vote_weight: 0,
+            proposed_user_weght,
             min_threshold,
             last_voting_time: 0
         };
         table::add(&mut user_request_list.list, object::uid_to_address(&new_request.id), new_request);
     }
 
+    public entry fun vote_user_request(
+        user_request_list: &mut UserRequestList,
+        user_request: address,
+        users: &Users, 
+        clock: &Clock, 
+        ctx: &mut TxContext
+    ) {
+        assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
+        assert!(table::contains(&user_request_list.list, user_request), ENOTVALIDPROPOSAL);
+        let request = table::borrow_mut(&mut user_request_list.list, user_request);
+        let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
+        request.vote_weight = request.vote_weight + *vote_weight;
+        request.last_voting_time = clock::timestamp_ms(clock);
+    }
+
+    public entry fun decide_user_action(
+        user_request_list: &mut UserRequestList,
+        user_request: address,
+        users: &mut Users,
+        ctx: &mut TxContext
+    ) {
+        let og_members = OGMEMBERS;
+        assert!(vector::contains(&og_members, &tx_context::sender(ctx)), EINVALIDACCESS);
+        let request = table::borrow_mut(&mut user_request_list.list, user_request);
+        assert!(request.vote_weight >= request.min_threshold, ENOTENOUGHVOTE);
+        if(request.add) {
+            table::add(&mut users.list, request.user_key, request.proposed_user_weght);
+        } else {
+            table::remove(&mut users.list, request.user_key);
+        };
+    }
 
 }
 
