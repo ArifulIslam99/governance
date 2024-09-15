@@ -16,6 +16,9 @@ module governance::governance {
     const EINVALIDACCESS: u64 = 12;
     const ENOTENOUGHVOTE: u64 = 13;
     const EALREADYDAOMEMBER: u64 = 14;
+    const EALREADYACCEPTED: u64 = 15;
+    const EALREADYVOTED: u64 = 16;
+
     public struct Proposal has key, store {
         id: UID,
         name: String,
@@ -23,12 +26,13 @@ module governance::governance {
         accepted: bool,
         min_threshold: u64,
         weight: u64,
-        last_voting_time: u64
+        last_voting_time: u64,
+        voter_list: Table<address, bool>
     }
 
     public struct ProposalList has key {
         id: UID,
-        list: Table<address, Proposal>
+        list: Table<address, Proposal>,
     }
 
     public struct Users has key, store {
@@ -48,7 +52,8 @@ module governance::governance {
         vote_weight: u64,
         proposed_user_weght: u64,
         min_threshold: u64,
-        last_voting_time: u64
+        last_voting_time: u64,
+        voter_list: Table<address, bool>
     }
 
 
@@ -93,18 +98,21 @@ module governance::governance {
             accepted: false,
             min_threshold,
             weight: 0,
-            last_voting_time: 0
+            last_voting_time: 0,
+            voter_list: table::new(ctx)
         };
         table::add(&mut proposal_list.list, object::uid_to_address(&new_proposal.id), new_proposal);
     }
 
     public entry fun vote_proposal(proposal_list: &mut ProposalList, proposal: address, users: &Users, clock: &Clock, ctx: &mut TxContext) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
-        assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL);
+        assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL); 
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
+        assert!(table::contains(&proposal.voter_list, tx_context::sender(ctx)), EALREADYVOTED);
         let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
         proposal.weight = proposal.weight + *vote_weight;
         proposal.last_voting_time = clock::timestamp_ms(clock);
+        table::add(&mut proposal.voter_list, tx_context::sender(ctx), true);
     }
 
     public entry fun approve_proposal(proposal_list: &mut ProposalList, proposal: address, ctx: &mut TxContext) {
@@ -112,6 +120,7 @@ module governance::governance {
         assert!(vector::contains(&og_members, &tx_context::sender(ctx)), EINVALIDACCESS);
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
         assert!(proposal.weight >= proposal.min_threshold, ENOTENOUGHVOTE);
+        assert!(proposal.accepted == false, EALREADYACCEPTED);
         proposal.accepted = true;
     }
 
@@ -136,7 +145,8 @@ module governance::governance {
             vote_weight: 0,
             proposed_user_weght,
             min_threshold,
-            last_voting_time: 0
+            last_voting_time: 0,
+            voter_list: table::new(ctx)
         };
         table::add(&mut user_request_list.list, object::uid_to_address(&new_request.id), new_request);
     }
@@ -151,9 +161,11 @@ module governance::governance {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         assert!(table::contains(&user_request_list.list, user_request), ENOTVALIDPROPOSAL);
         let request = table::borrow_mut(&mut user_request_list.list, user_request);
+        assert!(table::contains(&request.voter_list, tx_context::sender(ctx)), EALREADYVOTED);
         let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
         request.vote_weight = request.vote_weight + *vote_weight;
         request.last_voting_time = clock::timestamp_ms(clock);
+        table::add(&mut request.voter_list, tx_context::sender(ctx), true);
     }
 
     public entry fun decide_user_action(
