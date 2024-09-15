@@ -115,7 +115,7 @@ module governance::governance {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL); 
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
-        assert!(table::contains(&proposal.voter_list, tx_context::sender(ctx)), EALREADYVOTED);
+        assert!(table::contains(&proposal.voter_list, tx_context::sender(ctx)) == false, EALREADYVOTED);
         let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
         proposal.weight = proposal.weight + *vote_weight;
         proposal.last_voting_time = clock::timestamp_ms(clock);
@@ -168,7 +168,7 @@ module governance::governance {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         assert!(table::contains(&user_request_list.list, user_request), ENOTVALIDPROPOSAL);
         let request = table::borrow_mut(&mut user_request_list.list, user_request);
-        assert!(table::contains(&request.voter_list, tx_context::sender(ctx)), EALREADYVOTED);
+        assert!(table::contains(&request.voter_list, tx_context::sender(ctx)) == false, EALREADYVOTED);
         let vote_weight = table::borrow(&users.list, tx_context::sender(ctx));
         request.vote_weight = request.vote_weight + *vote_weight;
         request.last_voting_time = clock::timestamp_ms(clock);
