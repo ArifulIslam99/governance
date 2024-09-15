@@ -89,7 +89,14 @@ module governance::governance {
     }
 
 
-    public entry fun create_proposal(name: String, blob: Blob, proposal_list: &mut ProposalList, min_threshold: u64, users: &Users, ctx: &mut TxContext) {
+    public entry fun create_proposal(
+        name: String, 
+        blob: Blob, 
+        proposal_list: &mut ProposalList, 
+        min_threshold: u64, 
+        users: &Users, 
+        ctx: &mut TxContext
+        ) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         let new_proposal = Proposal {
             id: object::new(ctx),
