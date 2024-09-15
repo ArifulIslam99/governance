@@ -2,7 +2,7 @@
 
 [move]
 version = 2
-manifest_digest = "5DD38EDD2B32293859DCE2B6A23957563FBA2A312635914EC206E4857848EAE8"
+manifest_digest = "AA4F7C9ADE314A58AF99F8304C33DB02D0C9037E4BF0ECE3A262CEB5CCAE9E42"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { name = "Sui" },
@@ -23,13 +23,27 @@ dependencies = [
 
 [[move.package]]
 name = "blob_store"
-source = { git = "https://github.com/MystenLabs/walrus-docs.git", rev = "main", subdir = "contracts/blob_store" }
+source = { local = "blob_store" }
 
 dependencies = [
   { name = "Sui" },
 ]
 
 [move.toolchain-version]
-compiler-version = "1.30.1"
+compiler-version = "1.33.0"
 edition = "2024.beta"
 flavor = "sui"
+
+[env]
+
+[env.devnet]
+chain-id = "167bafe9"
+original-published-id = "0x0000000000000000000000000000000000000000000000000000000000000000"
+latest-published-id = "0x78a4fd294452e0dd5075ad565023935a7352870d9a2ef38bc5419f13d3ffc606"
+published-version = "1"
+
+[env.testnet]
+chain-id = "4c78adac"
+original-published-id = "0x1052ff0e3786aab83644a47a73b97643b73c1cd4a7c4b8c9803ebe6c4d94faa5"
+latest-published-id = "0x1052ff0e3786aab83644a47a73b97643b73c1cd4a7c4b8c9803ebe6c4d94faa5"
+published-version = "1"
