@@ -8,13 +8,13 @@ function CreateProposal() {
     const submitUserProposal = async () => {
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x7c34c2a7802d2667959468c6bed348651cd4f5769b0293d6ef1a2fbe883b3754::governance::process_user_request`,
+            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::process_user_request`,
             arguments: [
                 trx.pure.address('0xda4a99dc2473de94a1711b33cd18bbea7bf517ed432ea09c3e90e993ed6f5410'),
                 trx.pure.bool(true),
-                trx.object("0x784ff3291657915403f89ee82b452c1bc67c4d5713391c08b197236f18e3aa08"),
+                trx.object("0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c"),
                 trx.pure.u64(5),
-                trx.object('0x3f8893c80424c7637cf6c6e333b29cc4f7ec7783c4c857cf5ca3ba5a36a8c87a'),
+                trx.object('0xadb0fb8d0e715763a4359dee593ee268e6a5b113dea803b548c1c7b129df6f41'),
                 trx.pure.u64(2)
             ]
         });
@@ -22,6 +22,11 @@ function CreateProposal() {
         signAndExecute(
             {
                 transaction: trx,
+            },
+            {
+                onSuccess: () => {
+                    console.log("Transaction Successful")
+                }
             },
             {
                 onError: (err) => {
@@ -34,11 +39,11 @@ function CreateProposal() {
     const VoteUserRequest = () => {
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x7c34c2a7802d2667959468c6bed348651cd4f5769b0293d6ef1a2fbe883b3754::governance::vote_user_request`,
+            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::vote_user_request`,
             arguments: [
-                trx.object('0x3f8893c80424c7637cf6c6e333b29cc4f7ec7783c4c857cf5ca3ba5a36a8c87a'),
-                trx.pure.address('0xfded539127e6c2a6fa306cbd792ee73716059abe2ec102180cc28769c13c8375'),
-                trx.object('0x784ff3291657915403f89ee82b452c1bc67c4d5713391c08b197236f18e3aa08'),
+                trx.object('0xadb0fb8d0e715763a4359dee593ee268e6a5b113dea803b548c1c7b129df6f41'),
+                trx.pure.address('0xd6fe0d5ffb1a84110cfd1f28749de6082d9c93f98c4587b7f1b8100e98ccf444'),
+                trx.object('0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c'),
                 trx.object('0x0000000000000000000000000000000000000000000000000000000000000006')
             ]
         });
@@ -56,13 +61,14 @@ function CreateProposal() {
     }
 
     const handleUserRequest = () => {
+        console.log("Checked")
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x7c34c2a7802d2667959468c6bed348651cd4f5769b0293d6ef1a2fbe883b3754::governance::decide_user_action`,
+            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::decide_user_action`,
             arguments: [
-                trx.object('0x3f8893c80424c7637cf6c6e333b29cc4f7ec7783c4c857cf5ca3ba5a36a8c87a'),
-                trx.pure.address(''),
-                trx.object('0x784ff3291657915403f89ee82b452c1bc67c4d5713391c08b197236f18e3aa08'),
+                trx.object('0xadb0fb8d0e715763a4359dee593ee268e6a5b113dea803b548c1c7b129df6f41'),
+                trx.pure.address('0xd6fe0d5ffb1a84110cfd1f28749de6082d9c93f98c4587b7f1b8100e98ccf444'),
+                trx.object('0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c'),
             ]
         });
 
@@ -81,13 +87,13 @@ function CreateProposal() {
     const submitNewProposal = () => {
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x7c34c2a7802d2667959468c6bed348651cd4f5769b0293d6ef1a2fbe883b3754::governance::create_proposal`,
+            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::create_proposal`,
             arguments: [
                 trx.pure.string('Upgrade Contract'),
                 trx.object('0x5827cb580bac7db6d6dd545410e74b7b94f7055c39920d42c342210fd99fb09b'),
-                trx.object('0xe66a35cc7ab654e727a02ea78fb2dac4c2c17aa982443b835f7d80d4f297cace'),
+                trx.object('0x0d57fde709b268425877781221c1a2c06d270f5c9a281f0fb30a381cf3c0f833'),
                 trx.pure.u64(10),
-                trx.object('0x784ff3291657915403f89ee82b452c1bc67c4d5713391c08b197236f18e3aa08'),
+                trx.object('0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c'),
             ]
         });
 

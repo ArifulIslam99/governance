@@ -1,7 +1,8 @@
 [package]
 name = "governance"
 edition = "2024.beta"
-published-at = "0x7c34c2a7802d2667959468c6bed348651cd4f5769b0293d6ef1a2fbe883b3754"
+published-at = "0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2"
+
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.31.1" }
 blob_store = { local = "blob_store"}
