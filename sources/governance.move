@@ -32,7 +32,7 @@ module governance::governance {
 
     public struct ProposalList has key {
         id: UID,
-        list: Table<address, Proposal>,
+        list: Table<ID, Proposal>,
     }
 
     public struct Users has key, store {
@@ -42,7 +42,7 @@ module governance::governance {
 
     public struct UserRequestList has key {
         id: UID,
-        list: Table<address, HandleUser>
+        list: Table<ID, HandleUser>
     }
 
     public struct HandleUser has key, store {
@@ -108,10 +108,10 @@ module governance::governance {
             last_voting_time: 0,
             voter_list: table::new(ctx)
         };
-        table::add(&mut proposal_list.list, object::uid_to_address(&new_proposal.id), new_proposal);
+        table::add(&mut proposal_list.list, object::uid_to_inner(&new_proposal.id), new_proposal);
     }
 
-    public entry fun vote_proposal(proposal_list: &mut ProposalList, proposal: address, users: &Users, clock: &Clock, ctx: &mut TxContext) {
+    public entry fun vote_proposal(proposal_list: &mut ProposalList, proposal: ID, users: &Users, clock: &Clock, ctx: &mut TxContext) {
         assert!(table::contains(&users.list, tx_context::sender(ctx)), ENOTDAOMEMBER);
         assert!(table::contains(&proposal_list.list, proposal), ENOTVALIDPROPOSAL); 
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
@@ -122,7 +122,7 @@ module governance::governance {
         table::add(&mut proposal.voter_list, tx_context::sender(ctx), true);
     }
 
-    public entry fun approve_proposal(proposal_list: &mut ProposalList, proposal: address, ctx: &mut TxContext) {
+    public entry fun approve_proposal(proposal_list: &mut ProposalList, proposal: ID, ctx: &mut TxContext) {
         let og_members = OGMEMBERS;
         assert!(vector::contains(&og_members, &tx_context::sender(ctx)), EINVALIDACCESS);
         let proposal = table::borrow_mut(&mut proposal_list.list, proposal);
@@ -155,12 +155,12 @@ module governance::governance {
             last_voting_time: 0,
             voter_list: table::new(ctx)
         };
-        table::add(&mut user_request_list.list, object::uid_to_address(&new_request.id), new_request);
+        table::add(&mut user_request_list.list, object::uid_to_inner(&new_request.id), new_request);
     }
 
     public entry fun vote_user_request(
         user_request_list: &mut UserRequestList,
-        user_request: address,
+        user_request: ID,
         users: &Users, 
         clock: &Clock, 
         ctx: &mut TxContext
@@ -177,7 +177,7 @@ module governance::governance {
 
     public entry fun decide_user_action(
         user_request_list: &mut UserRequestList,
-        user_request: address,
+        user_request: ID,
         users: &mut Users,
         ctx: &mut TxContext
     ) {
