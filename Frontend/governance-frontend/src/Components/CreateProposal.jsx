@@ -12,7 +12,7 @@ function CreateProposal() {
         const trx = new Transaction();
         
         trx.moveCall({
-            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::process_user_request`,
+            target: `0x5ba420c8f49ccf8589f42169a68039ff0370414b7c5fbd0a316eaf4ea73b9f27::governance::process_user_request`,
             arguments: [
                 trx.pure.address('0xda4a99dc2473de94a1711b33cd18bbea7bf517ed432ea09c3e90e993ed6f5410'),
                 trx.pure.bool(true),
@@ -40,10 +40,37 @@ function CreateProposal() {
         );
     }
 
+    const retrieve_proposals = async () => {
+        console.log("clicked")
+        const proposal_details = (await suiClient.getObject({
+            id: '0x6d98f83c8bce3e6c0081ec264fb5f24301050e4e1f86e3a60088e44cbbd1232d',
+            options: {
+                showContent: true,
+                showDisplay: true,
+                showOwner: true,
+              },
+        }));
+    
+        const dynamicContentLinks = await suiClient.getDynamicFields({
+          parentId: proposal_details.data?.content?.fields?.list?.fields?.id?.id,
+        });
+    
+        const allSocialsObjectIds = dynamicContentLinks?.data.map((elm) => elm.objectId);
+
+        let contentLinks = (await suiClient.multiGetObjects({
+            ids: allSocialsObjectIds,
+            options: {
+              showContent: true,
+            },
+          }));
+
+        console.log(contentLinks)
+    }
+
     const VoteUserRequest = () => {
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::vote_user_request`,
+            target: `0x5ba420c8f49ccf8589f42169a68039ff0370414b7c5fbd0a316eaf4ea73b9f27::governance::vote_user_request`,
             arguments: [
                 trx.object('0xadb0fb8d0e715763a4359dee593ee268e6a5b113dea803b548c1c7b129df6f41'),
                 trx.pure.address('0xd6fe0d5ffb1a84110cfd1f28749de6082d9c93f98c4587b7f1b8100e98ccf444'),
@@ -64,11 +91,15 @@ function CreateProposal() {
         );
     }
 
+
+
+   
+
     const handleUserRequest = () => {
         console.log("Checked")
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::decide_user_action`,
+            target: `0x5ba420c8f49ccf8589f42169a68039ff0370414b7c5fbd0a316eaf4ea73b9f27::governance::decide_user_action`,
             arguments: [
                 trx.object('0xadb0fb8d0e715763a4359dee593ee268e6a5b113dea803b548c1c7b129df6f41'),
                 trx.pure.address('0xd6fe0d5ffb1a84110cfd1f28749de6082d9c93f98c4587b7f1b8100e98ccf444'),
@@ -91,13 +122,13 @@ function CreateProposal() {
     const submitNewProposal = () => {
         const trx = new Transaction();
         trx.moveCall({
-            target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::create_proposal`,
+            target: `0x5ba420c8f49ccf8589f42169a68039ff0370414b7c5fbd0a316eaf4ea73b9f27::governance::create_proposal`,
             arguments: [
-                trx.pure.string('Increase Staking Rewards'),
-                trx.object('0x3c75af55472b7cf83ded0d18d7b2c6cbdfc3b0a30a20c346e9ed72331de26a46'),
-                trx.object('0x0d57fde709b268425877781221c1a2c06d270f5c9a281f0fb30a381cf3c0f833'),
-                trx.pure.u64(100),
-                trx.object('0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c'),
+                trx.pure.string('New Voting Mechanism'),
+                trx.object('0xa5e8b306f2126f8c78d630d6c41c9c7510f0389fa735004eeba78451b9aa112b'),
+                trx.object('0x6d98f83c8bce3e6c0081ec264fb5f24301050e4e1f86e3a60088e44cbbd1232d'),
+                trx.pure.u64(250),
+                trx.object('0xc9950a30ee8a4315c924031a0651bb12ae1320345d2d44224da36247997b96ee'),
             ]
         });
 
@@ -227,6 +258,13 @@ function CreateProposal() {
                     onClick={retrieveBlobid}
                     className="btn btn-active btn-secondary"
                 >Get All Users</button>
+            </div>
+
+            <div>
+            <button
+                    onClick={retrieve_proposals}
+                    className="btn btn-active btn-secondary"
+                >Get All Proposals</button>
             </div>
 
         </div>
