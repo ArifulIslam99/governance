@@ -5,7 +5,7 @@ module walrusmultisig::protocol {
     // Error codes
     const EUsernameExists: u64 = 1;
     const EUserNotFound: u64 = 2;
-    const EMultisigNotFound: u64 = 3;
+    // const EMultisigNotFound: u64 = 3;
 
     // Resource for registering users with usernames and public keys
     public struct UserRegistry has key, store {
@@ -17,7 +17,7 @@ module walrusmultisig::protocol {
     // Resource for registering multisig names with associated blob IDs
     public struct MultisigRegistry has key, store {
         id: UID,
-        multisigs: Table<String, vector<String>>, // Maps multisig name -> blob ID array
+        multisigs: vector<String>, // Maps multisig name -> blob ID array
     }
 
     /// Create and initialize both registries
@@ -30,7 +30,7 @@ module walrusmultisig::protocol {
         
         let multisig_registry = MultisigRegistry {
             id: object::new(ctx),
-            multisigs: table::new(ctx),
+            multisigs:vector::empty(),
         };
         transfer::public_share_object(user_registry);
         transfer::public_share_object(multisig_registry);
@@ -45,12 +45,17 @@ module walrusmultisig::protocol {
     }
 
     /// Add a new blob ID to an existing multisig or create a new one if it doesn't exist
-    public entry fun add_multisig_blob(multisig_registry: &mut MultisigRegistry, multisig_name: String, blob_id: String) {
-        if (!table::contains(&multisig_registry.multisigs, multisig_name)) {
-            table::add(&mut multisig_registry.multisigs, multisig_name, vector::empty<String>());
+     /// Add a new blob ID to an existing multisig or create a new one if it doesn't exist ***
+    public entry fun add_multisig_blob(multisig_registry: &mut MultisigRegistry, multisig: vector<String>) {
+        let mut i: u64 = 0;
+        while(i < vector::length(&multisig)) {
+            let element = vector::borrow(&multisig, i);
+            if (!vector::contains(&multisig_registry.multisigs, element)) {
+                vector::push_back(&mut multisig_registry.multisigs, *element);
+            };
+            i = i + 1;
         };
-        let blob_ids = table::borrow_mut(&mut multisig_registry.multisigs, multisig_name);
-        vector::push_back(blob_ids, blob_id);
+    
     }
 
     /// Retrieve all usernames from the UserRegistry
@@ -65,8 +70,15 @@ module walrusmultisig::protocol {
     }
 
     /// Retrieve the array of blob IDs for a given multisig
-    public entry fun get_blob_ids(multisig_registry: &MultisigRegistry, multisig_name: String): vector<String> {
-        assert!(table::contains(&multisig_registry.multisigs, multisig_name), EMultisigNotFound); // Ensure the multisig exists
-        *table::borrow(&multisig_registry.multisigs, multisig_name)
+    public entry fun get_blob_ids(multisig_registry: &MultisigRegistry): vector<String> {
+        let mut allwallet = vector::empty<String>();
+        let mut i : u64 = 0;
+        while(i < vector::length(&multisig_registry.multisigs) ) {
+            let element = *vector::borrow(&multisig_registry.multisigs, i);
+            vector::push_back(&mut allwallet, element);
+            i = i + 1;
+        };
+        allwallet
     }
+
 }
