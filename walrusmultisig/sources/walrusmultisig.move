@@ -54,18 +54,18 @@ module walrusmultisig::protocol {
     }
 
     /// Retrieve all usernames from the UserRegistry
-    public fun get_all_usernames(user_registry: &UserRegistry): vector<String> {
+    public entry fun get_all_usernames(user_registry: &UserRegistry): vector<String> {
         user_registry.all_usernames
     }
 
     /// Retrieve the public key for a given username
-    public fun get_public_key(user_registry: &UserRegistry, username: String): String {
+    public entry fun get_public_key(user_registry: &UserRegistry, username: String): String {
         assert!(table::contains(&user_registry.usernames, username), EUserNotFound); // Ensure the username exists
         *table::borrow(&user_registry.usernames, username)
     }
 
     /// Retrieve the array of blob IDs for a given multisig
-    public fun get_blob_ids(multisig_registry: &MultisigRegistry, multisig_name: String): vector<String> {
+    public entry fun get_blob_ids(multisig_registry: &MultisigRegistry, multisig_name: String): vector<String> {
         assert!(table::contains(&multisig_registry.multisigs, multisig_name), EMultisigNotFound); // Ensure the multisig exists
         *table::borrow(&multisig_registry.multisigs, multisig_name)
     }
