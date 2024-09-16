@@ -1,12 +1,16 @@
-import { ConnectButton, useAccounts, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { ConnectButton, useAccounts, useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 
 function CreateProposal() {
     const accounts = useAccounts();
+    const suiClient = useSuiClient();
     const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+    const MY_ADDRESS =
+        "0x19088d857606c202fd57ab581e1842e5b87fa90340128ce44abcc62cb5185f37";
 
     const submitUserProposal = async () => {
         const trx = new Transaction();
+        
         trx.moveCall({
             target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::process_user_request`,
             arguments: [
@@ -89,10 +93,10 @@ function CreateProposal() {
         trx.moveCall({
             target: `0x8b5d308b7a50c6542c3ef28ec84bb9962be5078c9e46e8f41ff262f87ddb3cf2::governance::create_proposal`,
             arguments: [
-                trx.pure.string('Upgrade Contract'),
-                trx.object('0x5827cb580bac7db6d6dd545410e74b7b94f7055c39920d42c342210fd99fb09b'),
+                trx.pure.string('Increase Staking Rewards'),
+                trx.object('0x3c75af55472b7cf83ded0d18d7b2c6cbdfc3b0a30a20c346e9ed72331de26a46'),
                 trx.object('0x0d57fde709b268425877781221c1a2c06d270f5c9a281f0fb30a381cf3c0f833'),
-                trx.pure.u64(10),
+                trx.pure.u64(100),
                 trx.object('0xc4132aac7d00f91ab855a48f8a7b6ef72a441d8ba26240c3fc6a515f6eebb48c'),
             ]
         });
@@ -108,6 +112,61 @@ function CreateProposal() {
             }
         );
     }
+
+    const retrievePublicKey = async () => {
+        const trx = new Transaction();
+        trx.moveCall({
+            target: `0x9222f45aa00b2712c027b37bad31342fedb52de1d9aa049bca67e935c5e2e5dc::protocol::get_public_key`,
+            arguments: [
+                trx.object('0xd82471a9da34b6d5bc0c2736ce05a268936ce5a6714d1e6e917a82817232ae44'),
+                trx.pure.string("Ariful Afridi"),
+            ]
+        });
+
+        const res = await suiClient.devInspectTransactionBlock({
+            sender: MY_ADDRESS,
+            transactionBlock: trx,
+        });
+
+        console.log(res)
+    }
+
+    const retrieveUsers  = async() => {
+        const trx = new Transaction();
+        trx.moveCall({
+            target: `0x9222f45aa00b2712c027b37bad31342fedb52de1d9aa049bca67e935c5e2e5dc::protocol::get_all_usernames`,
+            arguments: [
+                trx.object('0xd82471a9da34b6d5bc0c2736ce05a268936ce5a6714d1e6e917a82817232ae44'),
+            ]
+        });
+
+        const res = await suiClient.devInspectTransactionBlock({
+            sender: MY_ADDRESS,
+            transactionBlock: trx,
+        });
+
+        console.log(res)
+    }
+
+    const retrieveBlobid = async () => {
+        const trx = new Transaction();
+        trx.moveCall({
+            target: `0x9222f45aa00b2712c027b37bad31342fedb52de1d9aa049bca67e935c5e2e5dc::protocol::get_blob_ids`,
+            arguments: [
+                trx.object('0x478f4467244032f0d8c79eeaa72084aedc32b87f4efc28a979f6f7718f8fa481'),
+                trx.pure.string("abcwallet")
+            ]
+        });
+
+        const res = await suiClient.devInspectTransactionBlock({
+            sender: MY_ADDRESS,
+            transactionBlock: trx,
+        });
+
+        console.log(res)
+    }
+
+
 
 
     return (
@@ -155,6 +214,20 @@ function CreateProposal() {
                 >Approve or Decline User Request</button>
             </div>
 
+
+            <div className="my-4">
+                <button
+                    onClick={retrievePublicKey}
+                    className="btn btn-active btn-secondary"
+                >Get Public Key</button>
+            </div>
+            
+            <div>
+            <button
+                    onClick={retrieveBlobid}
+                    className="btn btn-active btn-secondary"
+                >Get All Users</button>
+            </div>
 
         </div>
     );
